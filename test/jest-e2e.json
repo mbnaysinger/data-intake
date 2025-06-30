@@ -1,0 +1,22 @@
+{
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
+  "rootDir": ".",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.ts$": "ts-jest"
+  },
+  "moduleNameMapper": {
+    "^@modules/(.*)$": "<rootDir>/../src/modules/$1",
+    "^@AuthModule/(.*)$": "<rootDir>/../src/modules/auth/$1",
+    "^@PortalModule/(.*)$": "<rootDir>/../src/modules/portal/$1",
+    "^@src/(.*)$": "<rootDir>/../src/$1",
+    "^@test/(.*)$": "<rootDir>/../test/$1"
+  },
+  "silent": false,
+  "verbose": true,
+  "coverageDirectory": "<rootDir>/../coverage"
+}

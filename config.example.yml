@@ -1,0 +1,23 @@
+# Configurações da aplicação
+server:
+  port: 3000
+  node_env: local
+
+# Configurações do OpenAI
+openai:
+  api_key: your_openai_api_key
+
+# Configurações do Azure OpenAI
+azure_openai:
+  api_key: your_azure_openai_api_key
+  endpoint: https://your-resource.openai.azure.com
+  deployment_name: your-deployment-name
+
+# Configurações do ChromaDB
+chromadb:
+  url: http://localhost:8000
+  collection_name: documents
+
+# Configurações de logging
+logging:
+  level: info 
