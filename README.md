@@ -1,255 +1,118 @@
-# Data Intake - Serviço de Extração e Chunking
+# Data Intake
 
-Este projeto implementa um serviço completo de extração e chunking de documentos usando NestJS, LangChain, OpenAI/Azure OpenAI e ChromaDB.
+## Visão Geral
 
-## 🚀 Funcionalidades
+O **data-intake** é um serviço backend desenvolvido em Node.js com NestJS, projetado para realizar a extração, chunking, vetorização e armazenamento de documentos em um vector store (ChromaDB), utilizando Azure OpenAI para embeddings e LangChain para abstração de operações de IA. O objetivo é transformar documentos em chunks semânticos, gerar embeddings vetoriais e armazená-los para buscas semânticas rápidas e eficientes.
 
-- **Extração de Documentos**: Suporte para PDF, Excel, Texto e HTML
-- **Chunking Inteligente**: Múltiplas estratégias de divisão de texto
-- **Geração de Embeddings**: Usando OpenAI ou Azure OpenAI
-- **Vector Store**: Armazenamento e busca em ChromaDB
-- **API REST**: Endpoints para extração, busca e gerenciamento
+---
 
-## 📋 Pré-requisitos
+## Proposta do Projeto
 
-- Node.js 18+
-- Docker e Docker Compose
-- OpenAI API Key ou Azure OpenAI
+- **Automatizar o intake de documentos** (PDF, TXT, HTML, Excel) para sistemas de IA e busca semântica.
+- **Chunking inteligente**: dividir documentos em partes menores (chunks) usando estratégias configuráveis.
+- **Vetorização**: gerar embeddings vetoriais de cada chunk usando Azure OpenAI.
+- **Armazenamento vetorial**: persistir os chunks e embeddings no ChromaDB, permitindo buscas semânticas rápidas.
+- **API RESTful**: expor endpoints para upload, extração, busca e gerenciamento dos documentos e chunks.
 
-## 🛠️ Instalação
+---
+
+## Arquitetura
+
+- **NestJS**: framework principal para estruturação do backend.
+- **LangChain**: abstração para operações de chunking, embeddings e integração com vector stores.
+- **Azure OpenAI**: geração dos embeddings vetoriais dos chunks.
+- **ChromaDB**: vector store para persistência e busca semântica dos embeddings.
+- **Docker**: ambiente isolado para o ChromaDB.
+
+### Fluxo Principal
+
+1. **Upload/Extração**
+   - O usuário faz upload de um documento via API REST (Swagger ou HTTP).
+   - O arquivo é salvo temporariamente e processado conforme o tipo (PDF, TXT, etc).
+2. **Chunking**
+   - O documento é dividido em chunks usando estratégias como Recursive, Token ou Character.
+   - Metadados adicionais podem ser incluídos (autor, categoria, tags, etc).
+3. **Geração de Embeddings**
+   - Cada chunk é enviado para o Azure OpenAI, que retorna um vetor de embedding.
+4. **Armazenamento no Vector Store**
+   - Os chunks e seus embeddings são salvos no ChromaDB (API v2), com metadados limpos e compatíveis.
+5. **Busca Semântica**
+   - A API permite buscar por similaridade semântica, retornando os chunks mais próximos de uma query textual.
+
+---
+
+## Endpoints Principais
+
+- `POST /api/v1/extraction/upload` — Upload e extração de documento (com chunking e vetorização)
+- `POST /api/v1/extraction` — Extração de documento já existente
+- `POST /api/v1/extraction/search` — Busca semântica por similaridade
+- `GET /api/v1/extraction/vector-store` — Listagem dos chunks armazenados
+- `GET /api/v1/extraction/health` — Health check do serviço
+
+---
+
+## Tecnologias Utilizadas
+
+- **Node.js** + **NestJS**
+- **LangChain** (`@langchain/community`, `@langchain/openai`)
+- **ChromaDB** (vector store, rodando via Docker)
+- **Azure OpenAI** (API de embeddings)
+- **TypeScript**
+- **Jest** (testes)
+- **Swagger** (documentação e testes de API)
+
+---
+
+## Como Executar
 
 1. **Clone o repositório**
-```bash
-git clone <repository-url>
-cd data-intake
-```
+2. **Configure as variáveis de ambiente** (veja `env.example`)
+3. **Suba o ChromaDB**:
+   ```sh
+   docker-compose up -d
+   ```
+4. **Instale as dependências**:
+   ```sh
+   npm install
+   ```
+5. **Inicie o serviço**:
+   ```sh
+   npm run start:dev
+   ```
+6. **Acesse o Swagger**:
+   - http://localhost:3000/api
 
-2. **Instale as dependências**
-```bash
-npm install
-```
+---
 
-3. **Configure as variáveis de ambiente**
-```bash
-cp env.example .env.local
-# Edite o arquivo .env.local com suas configurações
+## Observações Técnicas
 
-# OU use o arquivo de configuração YAML (recomendado)
-cp config.example.yml .env.yml
-# Edite o arquivo .env.yml com suas configurações
-```
+- O sistema faz limpeza automática dos metadados para garantir compatibilidade com o ChromaDB v2.
+- Embeddings **NÃO** são retornados nas respostas para evitar sobrecarga de memória no frontend.
+- O chunking é configurável por estratégia, tamanho e sobreposição.
+- O código está preparado para evoluir para outros vector stores ou provedores de embeddings.
 
-4. **Inicie o ChromaDB**
-```bash
-docker-compose up -d chromadb
-```
+---
 
-5. **Execute o projeto**
-```bash
-# Desenvolvimento
-npm run start:dev
+## Exemplos de Uso
 
-# Produção
-npm run build
-npm run start:prod
-```
+### Upload de Documento
+- Envie um PDF, TXT, HTML ou Excel via Swagger ou API HTTP.
+- Inclua metadados opcionais (autor, categoria, tags, etc).
+- O sistema retorna os chunks extraídos (sem embeddings).
 
-## 🔧 Configuração
+### Busca Semântica
+- Envie uma query textual para `/api/v1/extraction/search`.
+- O sistema retorna os chunks mais similares semanticamente.
 
-### Variáveis de Ambiente
+---
 
-```bash
-# Ambiente
-NODE_ENV=local
+## Futuras Evoluções
+- Suporte a autenticação e autorização.
+- Integração com outros provedores de embeddings.
+- Interface web para visualização dos chunks e buscas.
+- Monitoramento e métricas de uso.
 
-# OpenAI/Azure OpenAI
-OPENAI_API_KEY=your_openai_api_key
-AZURE_OPENAI_API_KEY=your_azure_openai_api_key
-AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT_NAME=your-deployment-name
+---
 
-# ChromaDB
-CHROMA_URL=http://localhost:8000
-CHROMA_COLLECTION_NAME=documents
-
-# Logging
-LOG_LEVEL=info
-```
-
-### Configuração YAML (Recomendado)
-
-Para melhor organização, você pode usar o arquivo `.env.yml`:
-
-```yaml
-# Configurações da aplicação
-server:
-  port: 3000
-  node_env: local
-
-# Configurações do OpenAI
-openai:
-  api_key: your_openai_api_key
-
-# Configurações do Azure OpenAI
-azure_openai:
-  api_key: your_azure_openai_api_key
-  endpoint: https://your-resource.openai.azure.com
-  deployment_name: your-deployment-name
-
-# Configurações do ChromaDB
-chromadb:
-  url: http://localhost:8000
-  collection_name: documents
-
-# Configurações de logging
-logging:
-  level: info
-```
-
-## 📚 Uso da API
-
-### Extrair Documento
-```bash
-POST /api/v1/extraction
-```
-
-```json
-{
-  "source": "/path/to/document.pdf",
-  "fileType": "pdf",
-  "chunkingStrategy": "recursive",
-  "chunkSize": 1000,
-  "chunkOverlap": 200,
-  "metadata": {
-    "author": "João Silva",
-    "category": "financeiro"
-  },
-  "saveToVectorStore": true
-}
-```
-
-### Buscar Documentos Similares
-```bash
-POST /api/v1/extraction/search
-```
-
-```json
-{
-  "query": "Como funciona o processo de aprovação?",
-  "k": 5,
-  "filter": {
-    "fileType": "pdf"
-  }
-}
-```
-
-### Listar Extrações
-```bash
-GET /api/v1/extraction?limit=10&offset=0
-```
-
-### Obter Extração Específica
-```bash
-GET /api/v1/extraction/{id}
-```
-
-## 🔄 Fluxo de Processamento
-
-1. **Carregamento**: Documento é carregado usando LangChain loaders
-2. **Chunking**: Texto é dividido em chunks menores
-3. **Embeddings**: Cada chunk recebe um embedding vetorial
-4. **Armazenamento**: Chunks são salvos no ChromaDB (opcional)
-5. **Resposta**: API retorna chunks com metadados e embeddings
-
-## 📊 Estratégias de Chunking
-
-1. **Recursive**: Divide o texto de forma recursiva usando separadores
-2. **Token**: Divide baseado em tokens (recomendado para LLMs)
-3. **Character**: Divide baseado em caracteres
-
-## 📄 Tipos de Arquivo Suportados
-
-- **PDF**: Usando pdf-parse
-- **Excel**: Usando xlsx (todas as planilhas)
-- **Texto**: Arquivos .txt
-- **HTML**: Arquivos .html (extração básica de texto)
-
-## 🐳 Docker
-
-### ChromaDB
-```bash
-# Iniciar ChromaDB
-docker-compose up -d chromadb
-
-# Verificar status
-docker-compose ps
-
-# Logs
-docker-compose logs chromadb
-```
-
-## 📈 Monitoramento
-
-O projeto inclui logs detalhados para:
-- Carregamento de documentos
-- Processo de chunking
-- Geração de embeddings
-- Operações do vector store
-- Tempo de processamento
-
-## 🤝 Contribuição
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-## 📝 Licença
-
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
-
-## 🆘 Suporte
-
-Para suporte, abra uma issue no repositório ou entre em contato com a equipe de desenvolvimento.
-
-## 🧪 Testes
-
-```bash
-# Testes unitários
-npm run test:unit
-
-# Testes do módulo de extração
-npm run extraction:test
-
-# Testes e2e
-npm run test:e2e
-
-# Cobertura de testes
-npm run test:cov
-```
-
-## 📖 Exemplos
-
-### Executar Exemplo de Extração
-```bash
-npm run extraction:example
-```
-
-Este comando executa um script de exemplo que demonstra:
-- Extração de documentos PDF e Excel
-- Busca semântica no vector store
-- Filtros e metadados
-- Estatísticas da coleção
-
-## 🏗️ Arquitetura
-
-```
-src/
-├── modules/
-│   ├── config/           # Configurações da aplicação
-│   ├── health/           # Health checks
-│   ├── extraction/       # Módulo de extração
-│   └── common/           # Filtros e utilitários
-└── main.ts              # Ponto de entrada da aplicação
-```
+## Contato
+Dúvidas, sugestões ou bugs? Abra uma issue ou entre em contato com o mantenedor do projeto.
